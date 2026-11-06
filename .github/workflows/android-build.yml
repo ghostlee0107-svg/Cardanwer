@@ -27,6 +27,26 @@ jobs:
         run: |
           unzip -q CardAnswer_2.0_Android_Project.zip -d .
 
+      - name: Fix Java and Kotlin JVM targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("CardAnswer/app/build.gradle")
+          s = p.read_text()
+          s = s.replace(
+              "        targetSdk 35",
+              """        targetSdk 35
+                  compileOptions {
+                      sourceCompatibility JavaVersion.VERSION_17
+                      targetCompatibility JavaVersion.VERSION_17
+                  }
+                  kotlinOptions {
+                      jvmTarget = '17'
+                  }"""
+          )
+          p.write_text(s)
+          PY
+
       - name: Build APK
         run: gradle --no-daemon -p CardAnswer :app:assembleDebug
 
