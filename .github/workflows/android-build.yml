@@ -27,12 +27,14 @@ jobs:
         run: |
           unzip -q CardAnswer_2.0_Android_Project.zip -d .
 
-      - name: Fix Java and Kotlin JVM targets
+      - name: Fix Android source
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          p = Path("CardAnswer/app/build.gradle")
-          s = p.read_text()
+
+          gradle = Path("CardAnswer/app/build.gradle")
+          s = gradle.read_text()
+
           s = s.replace(
               "        targetSdk 35",
               """        targetSdk 35
@@ -44,7 +46,16 @@ jobs:
                       jvmTarget = '17'
                   }"""
           )
-          p.write_text(s)
+          gradle.write_text(s)
+
+          main = Path("CardAnswer/app/src/main/java/com/example/cardanswer/MainActivity.kt")
+          s = main.read_text()
+
+          if "singleLine = true" in s:
+              s = s.replace("singleLine = true", "setSingleLine(true)")
+          main.write_text(s)
+
+          print("Android source fixes applied.")
           PY
 
       - name: Build APK
